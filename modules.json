@@ -1,0 +1,29 @@
+{
+    "name": "nf-core/contammix",
+    "homePage": "https://github.com/nf-core/contammix",
+    "repos": {
+        "nf-core/modules": {
+            "bwa/aln": {
+                "git_sha": "50417f5f8c71fa2604cc049230906fb9e57a643d"
+            },
+            "custom/dumpsoftwareversions": {
+                "git_sha": "e745e167c1020928ef20ea1397b6b4d230681b4d"
+            },
+            "fastqc": {
+                "git_sha": "e745e167c1020928ef20ea1397b6b4d230681b4d"
+            },
+            "ivar/consensus": {
+                "git_sha": "e745e167c1020928ef20ea1397b6b4d230681b4d"
+            },
+            "mafft": {
+                "git_sha": "f0800157544a82ae222931764483331a81812012"
+            },
+            "multiqc": {
+                "git_sha": "e745e167c1020928ef20ea1397b6b4d230681b4d"
+            },
+            "samtools/fastq": {
+                "git_sha": "897c33d5da084b61109500ee44c01da2d3e4e773"
+            }
+        }
+    }
+}
