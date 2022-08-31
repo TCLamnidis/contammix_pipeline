@@ -20,13 +20,11 @@ process SAMTOOLS_FASTQ {
     script:
     def args = task.ext.args ?: ''
     def prefix = task.ext.prefix ?: "${meta.id}"
-    def endedness = meta.single_end ? "-0 ${prefix}.fastq.gz" : "-1 ${prefix}_1.fastq.gz -2 ${prefix}_2.fastq.gz"
     """
     samtools \\
         fastq \\
         $args \\
         --threads ${task.cpus-1} \\
-        $endedness \\
         $bam
 
     cat <<-END_VERSIONS > versions.yml
