@@ -25,6 +25,7 @@ process SAMTOOLS_FASTQ {
         fastq \\
         $args \\
         --threads ${task.cpus-1} \\
+        -o ${prefix}.fastq.gz \\
         $bam
 
     cat <<-END_VERSIONS > versions.yml
