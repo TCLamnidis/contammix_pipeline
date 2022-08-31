@@ -9,7 +9,7 @@ process IVAR_CONSENSUS {
 
     input:
     tuple val(meta), path(bam)
-    path fasta
+    // path fasta
     val save_mpileup
 
     output:
@@ -29,7 +29,6 @@ process IVAR_CONSENSUS {
     """
     samtools \\
         mpileup \\
-        --reference $fasta \\
         $args2 \\
         $bam \\
         $mpileup \\
