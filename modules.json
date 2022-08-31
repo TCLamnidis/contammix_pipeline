@@ -6,6 +6,9 @@
             "bwa/aln": {
                 "git_sha": "50417f5f8c71fa2604cc049230906fb9e57a643d"
             },
+            "cat/cat": {
+                "git_sha": "eeda4136c096688d04cc40bb3c70d948213ed641"
+            },
             "custom/dumpsoftwareversions": {
                 "git_sha": "e745e167c1020928ef20ea1397b6b4d230681b4d"
             },
