@@ -1,5 +1,5 @@
 name: run_contammix
-description: Run ContamMix.
+description: Mitochondrial genome contamination estimation.
 keywords:
   - contammix
   - mtDNA
