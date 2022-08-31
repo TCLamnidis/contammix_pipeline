@@ -1,6 +1,5 @@
 #!/usr/bin/env python
 
-
 """Provide a command line tool to validate and transform tabular samplesheets."""
 
 
@@ -26,17 +25,14 @@ class RowChecker:
     """
 
     VALID_FORMATS = (
-        ".fq.gz",
-        ".fastq.gz",
+        ".bam"
     )
 
     def __init__(
         self,
-        sample_col="sample",
-        first_col="fastq_1",
-        second_col="fastq_2",
-        single_col="single_end",
-        **kwargs,
+        sample_col="sample_id",
+        first_col="bam",
+        **kwargs
     ):
         """
         Initialize the row checker with the expected column names.
@@ -44,20 +40,12 @@ class RowChecker:
         Args:
             sample_col (str): The name of the column that contains the sample name
                 (default "sample").
-            first_col (str): The name of the column that contains the first (or only)
-                FASTQ file path (default "fastq_1").
-            second_col (str): The name of the column that contains the second (if any)
-                FASTQ file path (default "fastq_2").
-            single_col (str): The name of the new column that will be inserted and
-                records whether the sample contains single- or paired-end sequencing
-                reads (default "single_end").
+            first_col (str): The name of the column that contains the bam file path.
 
         """
         super().__init__(**kwargs)
         self._sample_col = sample_col
         self._first_col = first_col
-        self._second_col = second_col
-        self._single_col = single_col
         self._seen = set()
         self.modified = []
 
@@ -72,8 +60,6 @@ class RowChecker:
         """
         self._validate_sample(row)
         self._validate_first(row)
-        self._validate_second(row)
-        self._validate_pair(row)
         self._seen.add((row[self._sample_col], row[self._first_col]))
         self.modified.append(row)
 
@@ -84,41 +70,26 @@ class RowChecker:
         row[self._sample_col] = row[self._sample_col].replace(" ", "_")
 
     def _validate_first(self, row):
-        """Assert that the first FASTQ entry is non-empty and has the right format."""
-        assert len(row[self._first_col]) > 0, "At least the first FASTQ file is required."
-        self._validate_fastq_format(row[self._first_col])
+        """Assert that the BAM entry is non-empty and has the right format."""
+        assert len(row[self._first_col]) > 0, "BAM file is required."
+        self._validate_bam_format(row[self._first_col])
 
-    def _validate_second(self, row):
-        """Assert that the second FASTQ entry has the right format if it exists."""
-        if len(row[self._second_col]) > 0:
-            self._validate_fastq_format(row[self._second_col])
-
-    def _validate_pair(self, row):
-        """Assert that read pairs have the same file extension. Report pair status."""
-        if row[self._first_col] and row[self._second_col]:
-            row[self._single_col] = False
-            assert (
-                Path(row[self._first_col]).suffixes[-2:] == Path(row[self._second_col]).suffixes[-2:]
-            ), "FASTQ pairs must have the same file extensions."
-        else:
-            row[self._single_col] = True
-
-    def _validate_fastq_format(self, filename):
-        """Assert that a given filename has one of the expected FASTQ extensions."""
+    def _validate_bam_format(self, filename):
+        """Assert that a given filename has one of the expected BAM extensions."""
         assert any(filename.endswith(extension) for extension in self.VALID_FORMATS), (
-            f"The FASTQ file has an unrecognized extension: {filename}\n"
+            f"The BAM file has an unrecognized extension: {filename}\n"
             f"It should be one of: {', '.join(self.VALID_FORMATS)}"
         )
 
     def validate_unique_samples(self):
         """
-        Assert that the combination of sample name and FASTQ filename is unique.
+        Assert that the combination of sample name and BAM filename is unique.
 
         In addition to the validation, also rename the sample if more than one sample,
-        FASTQ file combination exists.
+        BAM file combination exists.
 
         """
-        assert len(self._seen) == len(self.modified), "The pair of sample name and FASTQ must be unique."
+        assert len(self._seen) == len(self.modified), "The pair of sample name and BAM must be unique."
         if len({pair[0] for pair in self._seen}) < len(self._seen):
             counts = Counter(pair[0] for pair in self._seen)
             seen = Counter()
@@ -157,9 +128,9 @@ def sniff_format(handle):
     peek = read_head(handle)
     handle.seek(0)
     sniffer = csv.Sniffer()
-    if not sniffer.has_header(peek):
-        logger.critical(f"The given sample sheet does not appear to contain a header.")
-        sys.exit(1)
+    # if not sniffer.has_header(peek):
+    #     logger.critical(f"The given sample sheet does not appear to contain a header.")
+    #     sys.exit(1)
     dialect = sniffer.sniff(peek)
     return dialect
 
@@ -181,16 +152,14 @@ def check_samplesheet(file_in, file_out):
         This function checks that the samplesheet follows the following structure,
         see also the `viral recon samplesheet`_::
 
-            sample,fastq_1,fastq_2
-            SAMPLE_PE,SAMPLE_PE_RUN1_1.fastq.gz,SAMPLE_PE_RUN1_2.fastq.gz
-            SAMPLE_PE,SAMPLE_PE_RUN2_1.fastq.gz,SAMPLE_PE_RUN2_2.fastq.gz
-            SAMPLE_SE,SAMPLE_SE_RUN1_1.fastq.gz,
+            sample,bam
+            SAMPLE,SAMPLE.bam
 
     .. _viral recon samplesheet:
         https://raw.githubusercontent.com/nf-core/test-datasets/viralrecon/samplesheet/samplesheet_test_illumina_amplicon.csv
 
     """
-    required_columns = {"sample", "fastq_1", "fastq_2"}
+    required_columns = {"sample_id", "bam"}
     # See https://docs.python.org/3.9/library/csv.html#id3 to read up on `newline=""`.
     with file_in.open(newline="") as in_handle:
         reader = csv.DictReader(in_handle, dialect=sniff_format(in_handle))
@@ -208,10 +177,10 @@ def check_samplesheet(file_in, file_out):
                 sys.exit(1)
         checker.validate_unique_samples()
     header = list(reader.fieldnames)
-    header.insert(1, "single_end")
+    # header.insert(1, "single_end")
     # See https://docs.python.org/3.9/library/csv.html#id3 to read up on `newline=""`.
     with file_out.open(mode="w", newline="") as out_handle:
-        writer = csv.DictWriter(out_handle, header, delimiter=",")
+        writer = csv.DictWriter(out_handle, header, delimiter="\t")
         writer.writeheader()
         for row in checker.modified:
             writer.writerow(row)
