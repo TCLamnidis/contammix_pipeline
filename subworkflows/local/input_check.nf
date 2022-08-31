@@ -25,7 +25,7 @@ workflow INPUT_CHECK {
 def create_bam_channel(LinkedHashMap row) {
     def meta = [:]
     // TODO create spanning main metadata
-    meta.id                 = [ row.sample_id, row.library_id ].join("_").trim()
+    meta.id                 = [ row.sample_id ].join("_").trim()
 
     meta.sample_id          = row.sample_id
 
