@@ -46,8 +46,11 @@ include { INPUT_CHECK } from '../subworkflows/local/input_check'
 //
 // MODULE: Installed directly from nf-core/modules
 //
-// include { FASTQC                      } from '../modules/nf-core/modules/fastqc/main'
-// include { MULTIQC                     } from '../modules/nf-core/modules/multiqc/main'
+include { CAT_CAT                     } from '../modules/nf-core/modules/cat/cat/main'
+include { SAMTOOLS_FASTQ              } from '../modules/nf-core/modules/samtools/fastq/main'
+include { BWA_ALN                     } from '../modules/nf-core/modules/bwa/aln/main'
+include { IVAR_CONSENSUS              } from '../modules/nf-core/modules/ivar/consensus/main'
+include { MAFFT                       } from '../modules/nf-core/modules/mafft/main'
 // include { CUSTOM_DUMPSOFTWAREVERSIONS } from '../modules/nf-core/modules/custom/dumpsoftwareversions/main'
 
 /*
@@ -70,6 +73,23 @@ workflow CONTAMMIX {
         ch_input
     )
     ch_versions = ch_versions.mix(INPUT_CHECK.out.versions)
+
+    SAMTOOLS_FASTQ (
+        INPUT_CHECK.out.bam
+    )
+    ch_versions = ch_versions.mix(SAMTOOLS_FASTQ.out.versions)
+
+    IVAR_CONSENSUS (
+        INPUT_CHECK.out.bam, false
+    )
+    ch_versions = ch_versions.mix(IVAR_CONSENSUS.out.versions)
+
+    CAT_CAT (
+        IVAR_CONSENSUS.out.fasta
+            .combine(Channel.fromList(["${baseDir}/assets/311mt_genomes_MH.fas"]))
+    )
+    ch_versions = ch_versions.mix(CAT_CAT.out.versions)
+
 
 
     // CUSTOM_DUMPSOFTWAREVERSIONS (
