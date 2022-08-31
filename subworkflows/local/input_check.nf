@@ -11,34 +11,29 @@ workflow INPUT_CHECK {
     main:
     SAMPLESHEET_CHECK ( samplesheet )
         .csv
-        .splitCsv ( header:true, sep:',' )
-        .map { create_fastq_channel(it) }
+        .splitCsv ( header:true, sep:'\t' )
+        .map { create_bam_channel(it) }
+        .dump(tag: "samplesheetcheck_bams")
         .set { reads }
 
     emit:
-    reads                                     // channel: [ val(meta), [ reads ] ]
+    reads                                     // channel: [[ val(meta), reads] ]
     versions = SAMPLESHEET_CHECK.out.versions // channel: [ versions.yml ]
 }
 
-// Function to get list of [ meta, [ fastq_1, fastq_2 ] ]
-def create_fastq_channel(LinkedHashMap row) {
-    // create meta map
+// Function to get list of [ meta, bam ]
+def create_bam_channel(LinkedHashMap row) {
     def meta = [:]
-    meta.id         = row.sample
-    meta.single_end = row.single_end.toBoolean()
+    // TODO create spanning main metadata
+    meta.id                 = [ row.sample_id, row.library_id ].join("_").trim()
 
-    // add path(s) of the fastq file(s) to the meta map
-    def fastq_meta = []
-    if (!file(row.fastq_1).exists()) {
-        exit 1, "ERROR: Please check input samplesheet -> Read 1 FastQ file does not exist!\n${row.fastq_1}"
-    }
-    if (meta.single_end) {
-        fastq_meta = [ meta, [ file(row.fastq_1) ] ]
+    meta.sample_id          = row.sample_id
+
+    def array = []
+    if (!file(row.bam).exists()) {
+        exit 1, "[nf-core/eager] error: Please check input samplesheet. BAM file does not exist!\nFile: ${row.bam}"
     } else {
-        if (!file(row.fastq_2).exists()) {
-            exit 1, "ERROR: Please check input samplesheet -> Read 2 FastQ file does not exist!\n${row.fastq_2}"
-        }
-        fastq_meta = [ meta, [ file(row.fastq_1), file(row.fastq_2) ] ]
+        array = [ meta, file(row.bam) ]
     }
-    return fastq_meta
+    return array
 }
