@@ -14,10 +14,10 @@ workflow INPUT_CHECK {
         .splitCsv ( header:true, sep:'\t' )
         .map { create_bam_channel(it) }
         .dump(tag: "samplesheetcheck_bams")
-        .set { reads }
+        .set { bam }
 
     emit:
-    reads                                     // channel: [[ val(meta), reads] ]
+    bam                                     // channel: [[ val(meta), bam ]]
     versions = SAMPLESHEET_CHECK.out.versions // channel: [ versions.yml ]
 }
 
