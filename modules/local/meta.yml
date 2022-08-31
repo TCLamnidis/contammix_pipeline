@@ -1,0 +1,50 @@
+name: run_contammix
+description: Run ContamMix.
+keywords:
+  - contammix
+  - mtDNA
+  - contamination
+tools:
+  - contammix:
+      description: |
+        ContamMix is an R package to estimate the amount of mtDNA contamination present
+        in a genomic library from a reference panel of 311 divergent present-day mtDNA genomes.
+      homepage:
+      documentation:
+      doi: "10.1038/nature17993"
+      licence: ["GPL-3.0-or-later"]
+
+input:
+  - meta:
+      type: map
+      description: |
+        Groovy Map containing sample information
+        e.g. [ id:'test', single_end:false ]
+  - bam:
+      type: file
+      description: |
+        A bam file containing the mtDNA reads mapped to their own consensus sequence.
+      pattern: "*.bam"
+  - alignment:
+      type: file
+      description: |
+        A multiple alignment FastA file that contains the consensus sequence of the mtDNA
+        reads as its first sequence, followed by the reference panel of 311 present-day mtDNA genomes.
+      pattern: "*.fas"
+
+output:
+  - versions:
+      type: file
+      description: File containing software versions
+      pattern: "versions.yml"
+  - pdf:
+      type: file
+      description: A pdf file containing the graphical results of the ContamMix run
+      pattern: "*.pdf"
+  - txt:
+      type: file
+      description: A text file with the results of the ContamMix run
+      pattern: "*.txt"
+
+authors:
+  - "@TCLamnidis"
