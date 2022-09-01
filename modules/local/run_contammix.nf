@@ -21,7 +21,7 @@ process RUN_CONTAMMIX {
     def prefix = task.ext.prefix ?: "${meta.id}"
     """
     contammix \\
-        --nrThreads ${task.cpus}
+        --nrThreads ${task.cpus} \\
         --samFn ${bam} \\
         --malnFn ${alignment} \\
         --figure ${prefix}.pdf \\

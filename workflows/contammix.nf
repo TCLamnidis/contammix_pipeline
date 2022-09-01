@@ -105,42 +105,50 @@ workflow CONTAMMIX {
     )
     ch_versions = ch_versions.mix(MAFFT.out.versions)
 
-    BWA_INDEX (
-        IVAR_CONSENSUS.out.fasta
+    //No meta needed for bwa index
+    ch_bwa_index_input = IVAR_CONSENSUS.out.fasta
         .map{
             map, fasta ->
             [fasta]
         }
+
+    BWA_INDEX (
+        ch_bwa_index_input
     )
     ch_versions = ch_versions.mix(BWA_INDEX.out.versions)
 
-    BWA_ALN(
-        SAMTOOLS_FASTQ.out.fastq
+    //Meta requires 'single_end' attribute for bwa aln
+    ch_bwa_aln_input_fastq = SAMTOOLS_FASTQ.out.fastq
             .map{
                 meta, fastq ->
                 meta['single_end'] = true
 
                 [meta, fastq]
             }
-            .dump(tag:"fastq_for_aln"),
+            .dump(tag:"fastq_for_aln")
+    BWA_ALN(
+        ch_bwa_aln_input_fastq,
         BWA_INDEX.out.index.dump(tag:"index_for_aln")
     )
     ch_versions = ch_versions.mix(BWA_ALN.out.versions)
 
-    BWA_SAMSE (
-        SAMTOOLS_FASTQ.out.fastq
+    //Meta requires 'single_end' attribute for bwa samse
+    ch_input_bwa_samse = SAMTOOLS_FASTQ.out.fastq
         .map{
             meta, fastq ->
             meta['single_end'] = true
 
             [meta, fastq]
         }
-        .join(BWA_ALN.out.sai),
+        .join(BWA_ALN.out.sai)
+
+    BWA_SAMSE (
+        ch_input_bwa_samse,
         BWA_INDEX.out.index
     )
     ch_versions = ch_versions.mix(BWA_SAMSE.out.versions)
 
-ch_contammix_input = BWA_SAMSE.out.bam
+    ch_contammix_input = BWA_SAMSE.out.bam
         .join(
             MAFFT.out.fas
                 .map{
