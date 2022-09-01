@@ -35,8 +35,8 @@ if (params.input) { ch_input = file(params.input) } else { exit 1, 'Input sample
 //
 // SUBWORKFLOW: Consisting of a mix of local and nf-core/modules
 //
-include { INPUT_CHECK } from '../subworkflows/local/input_check'
-include { RUN_CONTAMMIX } from '../modules/local/run_contammix'
+include { INPUT_CHECK      } from '../subworkflows/local/input_check'
+include { RUN_CONTAMMIX    } from '../modules/local/run_contammix'
 
 /*
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -49,9 +49,9 @@ include { RUN_CONTAMMIX } from '../modules/local/run_contammix'
 //
 include { CAT_CAT                     } from '../modules/nf-core/modules/cat/cat/main'
 include { SAMTOOLS_FASTQ              } from '../modules/nf-core/modules/samtools/fastq/main'
-include { BWA_INDEX                     } from '../modules/nf-core/modules/bwa/index/main'
+include { BWA_INDEX                   } from '../modules/nf-core/modules/bwa/index/main'
 include { BWA_ALN                     } from '../modules/nf-core/modules/bwa/aln/main'
-include { BWA_SAMSE                     } from '../modules/nf-core/modules/bwa/samse/main'
+include { BWA_SAMSE                   } from '../modules/nf-core/modules/bwa/samse/main'
 include { IVAR_CONSENSUS              } from '../modules/nf-core/modules/ivar/consensus/main'
 include { MAFFT                       } from '../modules/nf-core/modules/mafft/main'
 // include { CUSTOM_DUMPSOFTWAREVERSIONS } from '../modules/nf-core/modules/custom/dumpsoftwareversions/main'
