@@ -190,7 +190,7 @@ def parse_args(argv=None):
     """Define and immediately parse command line arguments."""
     parser = argparse.ArgumentParser(
         description="Validate and transform a tabular samplesheet.",
-        epilog="Example: python check_samplesheet.py samplesheet.csv samplesheet.valid.csv",
+        epilog="Example: python check_samplesheet.py samplesheet.tsv samplesheet.valid.tsv",
     )
     parser.add_argument(
         "file_in",
