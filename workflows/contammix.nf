@@ -36,6 +36,7 @@ if (params.input) { ch_input = file(params.input) } else { exit 1, 'Input sample
 // SUBWORKFLOW: Consisting of a mix of local and nf-core/modules
 //
 include { INPUT_CHECK } from '../subworkflows/local/input_check'
+include { RUN_CONTAMMIX } from '../modules/local/run_contammix'
 
 /*
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -48,7 +49,9 @@ include { INPUT_CHECK } from '../subworkflows/local/input_check'
 //
 include { CAT_CAT                     } from '../modules/nf-core/modules/cat/cat/main'
 include { SAMTOOLS_FASTQ              } from '../modules/nf-core/modules/samtools/fastq/main'
+include { BWA_INDEX                     } from '../modules/nf-core/modules/bwa/index/main'
 include { BWA_ALN                     } from '../modules/nf-core/modules/bwa/aln/main'
+include { BWA_SAMSE                     } from '../modules/nf-core/modules/bwa/samse/main'
 include { IVAR_CONSENSUS              } from '../modules/nf-core/modules/ivar/consensus/main'
 include { MAFFT                       } from '../modules/nf-core/modules/mafft/main'
 // include { CUSTOM_DUMPSOFTWAREVERSIONS } from '../modules/nf-core/modules/custom/dumpsoftwareversions/main'
@@ -87,10 +90,71 @@ workflow CONTAMMIX {
     CAT_CAT (
         IVAR_CONSENSUS.out.fasta
             .combine(Channel.fromList(["${baseDir}/assets/311mt_genomes_MH.fas"]))
+            .map{
+                    meta, bam, fasta ->
+
+                    [meta, [bam,fasta]]
+                }
+                // .dump(tag:"cat_inputs")
     )
     ch_versions = ch_versions.mix(CAT_CAT.out.versions)
 
+    MAFFT (
+        CAT_CAT.out.file_out
+        .dump(tag:"mafft_input")
+    )
+    ch_versions = ch_versions.mix(MAFFT.out.versions)
 
+    BWA_INDEX (
+        IVAR_CONSENSUS.out.fasta
+        .map{
+            map, fasta ->
+            [fasta]
+        }
+    )
+    ch_versions = ch_versions.mix(BWA_INDEX.out.versions)
+
+    BWA_ALN(
+        SAMTOOLS_FASTQ.out.fastq
+            .map{
+                meta, fastq ->
+                meta['single_end'] = true
+
+                [meta, fastq]
+            }
+            .dump(tag:"fastq_for_aln"),
+        BWA_INDEX.out.index.dump(tag:"index_for_aln")
+    )
+    ch_versions = ch_versions.mix(BWA_ALN.out.versions)
+
+    BWA_SAMSE (
+        SAMTOOLS_FASTQ.out.fastq
+        .map{
+            meta, fastq ->
+            meta['single_end'] = true
+
+            [meta, fastq]
+        }
+        .join(BWA_ALN.out.sai),
+        BWA_INDEX.out.index
+    )
+    ch_versions = ch_versions.mix(BWA_SAMSE.out.versions)
+
+ch_contammix_input = BWA_SAMSE.out.bam
+        .join(
+            MAFFT.out.fas
+                .map{
+                meta, fastq ->
+                meta['single_end'] = true
+
+                [meta, fastq]
+            }
+        )
+        .dump(tag:"contammix_input")
+
+    RUN_CONTAMMIX (
+        ch_contammix_input
+    )
 
     // CUSTOM_DUMPSOFTWAREVERSIONS (
     //     ch_versions.unique().collectFile(name: 'collated_versions.yml')

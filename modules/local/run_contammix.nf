@@ -1,4 +1,4 @@
-process CONTAMMIX {
+process RUN_CONTAMMIX {
     tag "$meta.id"
     label 'process_medium'
 
