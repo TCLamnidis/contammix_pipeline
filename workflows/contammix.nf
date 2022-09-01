@@ -118,7 +118,7 @@ workflow CONTAMMIX {
     ch_versions = ch_versions.mix(BWA_INDEX.out.versions)
 
     //Meta requires 'single_end' attribute for bwa aln
-    ch_bwa_aln_input_fastq = SAMTOOLS_FASTQ.out.fastq
+    ch_fastq_updated_meta = SAMTOOLS_FASTQ.out.fastq
             .map{
                 meta, fastq ->
                 meta['single_end'] = true
@@ -126,24 +126,16 @@ workflow CONTAMMIX {
                 [meta, fastq]
             }
             .dump(tag:"fastq_for_aln")
+
     BWA_ALN(
-        ch_bwa_aln_input_fastq,
+        ch_fastq_updated_meta,
         BWA_INDEX.out.index.dump(tag:"index_for_aln")
     )
     ch_versions = ch_versions.mix(BWA_ALN.out.versions)
 
     //Meta requires 'single_end' attribute for bwa samse
-    ch_input_bwa_samse = SAMTOOLS_FASTQ.out.fastq
-        .map{
-            meta, fastq ->
-            meta['single_end'] = true
-
-            [meta, fastq]
-        }
-        .join(BWA_ALN.out.sai)
-
     BWA_SAMSE (
-        ch_input_bwa_samse,
+        ch_fastq_updated_meta.join(BWA_ALN.out.sai),
         BWA_INDEX.out.index
     )
     ch_versions = ch_versions.mix(BWA_SAMSE.out.versions)
