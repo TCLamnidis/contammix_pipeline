@@ -247,6 +247,10 @@
         "consensus_min_base_q": {
             "type": "integer",
             "default": 20
+        },
+        "contammix_container_path": {
+            "type": "string",
+            "default": "/mnt/archgen/tools/contammix.sif"
         }
     }
 }

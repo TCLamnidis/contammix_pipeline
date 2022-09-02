@@ -3,7 +3,7 @@ process RUN_CONTAMMIX {
     label 'process_medium'
 
     // TODO Change this to local copy of container? (once that is ready)
-    container "/mnt/archgen/tools/contammix.sif"
+    container "${params.contammix_container_path}"
 
     input:
     tuple val(meta), path(bam), path(alignment)
