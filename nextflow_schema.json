@@ -251,6 +251,10 @@
         "contammix_container_path": {
             "type": "string",
             "default": "/mnt/archgen/tools/contammix.sif"
+        },
+        "contammix_trim_bases": {
+            "type": "integer",
+            "default": 0
         }
     }
 }
