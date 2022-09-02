@@ -105,38 +105,51 @@ workflow CONTAMMIX {
     )
     ch_versions = ch_versions.mix(MAFFT.out.versions)
 
-    //No meta needed for bwa index
-    ch_bwa_index_input = IVAR_CONSENSUS.out.fasta
-        .map{
-            map, fasta ->
-            [fasta]
-        }
-
     BWA_INDEX (
-        ch_bwa_index_input
+        IVAR_CONSENSUS.out.fasta
     )
     ch_versions = ch_versions.mix(BWA_INDEX.out.versions)
 
     //Meta requires 'single_end' attribute for bwa aln
-    ch_fastq_updated_meta = SAMTOOLS_FASTQ.out.fastq
+    ch_fastq_updated_meta_with_index = SAMTOOLS_FASTQ.out.fastq
+            .join(
+                BWA_INDEX.out.index
+            )
             .map{
-                meta, fastq ->
+                meta, fastq, index ->
                 meta['single_end'] = true
 
-                [meta, fastq]
+                [meta, fastq, index]
             }
-            .dump(tag:"fastq_for_aln")
+
+    // For BWA_ALN, sinmply split channel in two.
+    ch_input_bwa_aln = ch_fastq_updated_meta_with_index
+            .multiMap{
+                it ->
+                fastq: [it[0], it [1]]
+                index: it[2]
+            }
 
     BWA_ALN(
-        ch_fastq_updated_meta,
-        BWA_INDEX.out.index.dump(tag:"index_for_aln")
+        ch_input_bwa_aln.fastq,
+        ch_input_bwa_aln.index
     )
     ch_versions = ch_versions.mix(BWA_ALN.out.versions)
 
+    //For BWA_SAMSE add BWA_ALN output then split in two
+    ch_input_bwa_samse = ch_fastq_updated_meta_with_index
+            .join(BWA_ALN.out.sai)
+            .dump(tag:"bwa_samse_input_before multiMap")
+            .multiMap{
+                meta, fastq, index, sai ->
+                fastq: [meta, fastq, sai]
+                index: [index]
+            }
+
     //Meta requires 'single_end' attribute for bwa samse
     BWA_SAMSE (
-        ch_fastq_updated_meta.join(BWA_ALN.out.sai),
-        BWA_INDEX.out.index
+        ch_input_bwa_samse.fastq,
+        ch_input_bwa_samse.index
     )
     ch_versions = ch_versions.mix(BWA_SAMSE.out.versions)
 
