@@ -168,6 +168,7 @@ workflow CONTAMMIX {
     RUN_CONTAMMIX (
         ch_contammix_input
     )
+    ch_versions = ch_versions.mix(RUN_CONTAMMIX.out.versions)
 
     // CUSTOM_DUMPSOFTWAREVERSIONS (
     //     ch_versions.unique().collectFile(name: 'collated_versions.yml')
