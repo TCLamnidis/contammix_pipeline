@@ -7,3 +7,4 @@ testing/
 testing*
 *.pyc
 assets/311mt_genomes_MH.fas
+assets/contammix.sif
