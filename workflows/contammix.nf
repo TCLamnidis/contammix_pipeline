@@ -115,6 +115,7 @@ workflow CONTAMMIX {
             .join(
                 BWA_INDEX.out.index
             )
+            // editing the meta map directly is a bad idea. clone it then edit the clone. See: https://midnighter.github.io/nextflow-gotchas/gotchas/shallow-copy/
             .map{
                 meta, fastq, index ->
                 clone = meta.clone()
