@@ -117,9 +117,10 @@ workflow CONTAMMIX {
             )
             .map{
                 meta, fastq, index ->
-                meta['single_end'] = true
+                clone = meta.clone()
+                clone['single_end'] = true
 
-                [meta, fastq, index]
+                [clone, fastq, index]
             }
 
     // For BWA_ALN, sinmply split channel in two.
