@@ -160,9 +160,10 @@ workflow CONTAMMIX {
             MAFFT.out.fas
                 .map{
                 meta, fastq ->
-                meta['single_end'] = true
+                def clone = meta.clone()
+                clone['single_end'] = true
 
-                [meta, fastq]
+                [clone, fastq]
             }
         )
         .dump(tag:"contammix_input")
