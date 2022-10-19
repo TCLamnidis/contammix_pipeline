@@ -87,21 +87,22 @@ workflow CONTAMMIX {
     )
     ch_versions = ch_versions.mix(IVAR_CONSENSUS.out.versions)
 
+    // Create channel from fasta of reference mtDNA genomes
+    ch_ref_fasta = Channel.fromList(["${baseDir}/assets/311mt_genomes_MH.fas"])
+
     CAT_CAT (
         IVAR_CONSENSUS.out.fasta
-            .combine(Channel.fromList(["${baseDir}/assets/311mt_genomes_MH.fas"]))
+            .combine(ch_ref_fasta)
             .map{
-                    meta, bam, fasta ->
+                    meta, consensus, fasta ->
 
-                    [meta, [bam,fasta]]
+                    [meta, [consensus, fasta]]
                 }
-                // .dump(tag:"cat_inputs")
     )
     ch_versions = ch_versions.mix(CAT_CAT.out.versions)
 
     MAFFT (
         CAT_CAT.out.file_out
-        .dump(tag:"mafft_input")
     )
     ch_versions = ch_versions.mix(MAFFT.out.versions)
 
@@ -141,7 +142,6 @@ workflow CONTAMMIX {
     //For BWA_SAMSE add BWA_ALN output then split in two
     ch_input_bwa_samse = ch_fastq_updated_meta_with_index
             .join(BWA_ALN.out.sai)
-            .dump(tag:"bwa_samse_input_before multiMap")
             .multiMap{
                 meta, fastq, index, sai ->
                 fastq: [meta, fastq, sai]
@@ -166,7 +166,6 @@ workflow CONTAMMIX {
                 [clone, fastq]
             }
         )
-        .dump(tag:"contammix_input")
 
     RUN_CONTAMMIX (
         ch_contammix_input
