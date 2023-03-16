@@ -18,9 +18,6 @@
             "custom/dumpsoftwareversions": {
                 "git_sha": "e745e167c1020928ef20ea1397b6b4d230681b4d"
             },
-            "fastqc": {
-                "git_sha": "e745e167c1020928ef20ea1397b6b4d230681b4d"
-            },
             "ivar/consensus": {
                 "git_sha": "e745e167c1020928ef20ea1397b6b4d230681b4d"
             },
